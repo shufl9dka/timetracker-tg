@@ -230,16 +230,17 @@ async def cmd_toggle_sumups(message: Message):
 @router.message(Command("tz"))
 async def cmd_timezone(message: Message):
     user_id = message.from_user.id
+    bad_format_msg = "Формат ввода: /tz [timezone]\n\nПодробнее про формат часовых поясов можно почитать <a href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List\">здесь</a>"
 
     a = message.text.split(maxsplit=1)
     if len(a) != 2:
-        await message.answer("Формат ввода: /tz [timezone]. Какие бывают таймзоны: <a href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List\">здесь</a>")
+        await message.answer(bad_format_msg, parse_mode=ParseMode.HTML)
         return
 
     try:
         tz = pytz.timezone(a[1])
     except:
-        await message.answer("Формат ввода: /tz [timezone]. Какие бывают таймзоны: <a href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List\">здесь</a>")
+        await message.answer(bad_format_msg, parse_mode=ParseMode.HTML)
         return
 
     async with async_session() as session:
