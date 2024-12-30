@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:13.3-alpine
+    environment:
+      POSTGRES_DB: "botapp_db"
+      POSTGRES_USER: "pguser"
+      POSTGRES_PASSWORD: "$POSTGRES_PASSWORD"
+    ports:
+      - "34175:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7.4.1-alpine
+    ports:
+      - '6379:6379'
+    environment:
+      REDIS_PASSWORD: "$REDIS_PASSWORD"
+      REDIS_USER: "$REDIS_USER"
+      REDIS_USER_PASSWORD: "$REDIS_USER_PASSWORD"
+    command: >
+      sh -c '
+        mkdir -p /usr/local/etc/redis &&
+        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+        echo "requirepass $REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
+        echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
+        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
+      '
+    restart: always
+    volumes:
+      - redis_data:/data
+
+  app:
+    build: .
+    environment:
+      BOT_TOKEN: "7809585061:AAH9uAH06k5lOqy_2MEmu4C1GoM3Gb6bRVI"
+      SQL_ENGINE_URI: "postgresql+asyncpg://pguser:$POSTGRES_PASSWORD@db/botapp_db"
+      REDIS_URI: "redis://$REDIS_USER:$REDIS_PASSWORD@redis/0"
+    depends_on:
+      - db
+      - redis
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  postgres_data:
+  redis_data:

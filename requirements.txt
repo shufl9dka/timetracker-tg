@@ -1,0 +1,7 @@
+aiogram~=3.16.0
+pytimeparse
+sqlalchemy
+asyncpg
+psycopg2-binary
+redis
+pytz
