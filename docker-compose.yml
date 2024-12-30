@@ -36,7 +36,7 @@ services:
   app:
     build: .
     environment:
-      BOT_TOKEN: "7809585061:AAH9uAH06k5lOqy_2MEmu4C1GoM3Gb6bRVI"
+      BOT_TOKEN: "$BOT_TOKEN"
       SQL_ENGINE_URI: "postgresql+asyncpg://pguser:$POSTGRES_PASSWORD@db/botapp_db"
       REDIS_URI: "redis://$REDIS_USER:$REDIS_PASSWORD@redis/0"
     depends_on:
