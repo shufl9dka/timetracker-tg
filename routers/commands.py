@@ -234,13 +234,13 @@ async def cmd_timezone(message: Message):
 
     a = message.text.split(maxsplit=1)
     if len(a) != 2:
-        await message.answer(bad_format_msg, parse_mode=ParseMode.HTML)
+        await message.answer(bad_format_msg, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
         return
 
     try:
         tz = pytz.timezone(a[1])
     except:
-        await message.answer(bad_format_msg, parse_mode=ParseMode.HTML)
+        await message.answer(bad_format_msg, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
         return
 
     async with async_session() as session:
