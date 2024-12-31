@@ -1,4 +1,3 @@
-import logging
 import time
 
 from collections import defaultdict
@@ -36,8 +35,6 @@ async def get_report(
     if additional is not None and additional.get("current_task") is not None:
         table[additional["current_task"]] = int(time.time()) - additional["started_ts"]
 
-    logging.info(f"Get report: start_from={start_from}")
-
     statement = sa.and_(
         TimeRecord.user_id == user_id,
         sa.or_(
@@ -53,7 +50,6 @@ async def get_report(
     )
 
     for record in records.scalars():
-        logging.info(f"Get report: {record.label}: {record.started_ts} -> {record.ended_ts}, added {max(start_from, record.ended_ts) - (record.started_ts if up_to is None else min(up_to, record.started_ts))}")
         table[record.label] += max(start_from, record.ended_ts) - (record.started_ts if up_to is None else min(up_to, record.started_ts))
 
     key = lambda x: x[1]

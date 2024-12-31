@@ -7,3 +7,5 @@ class Config:
     BOT_TOKEN = os.getenv("BOT_TOKEN")
     SQL_ENGINE_URI = os.getenv("SQL_ENGINE_URI")
     REDIS_URI = os.getenv("REDIS_URI")
+
+    FERNET_KEY = os.getenv("FERNET_KEY")

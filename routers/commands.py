@@ -12,9 +12,10 @@ from sqlalchemy import select, delete, update, and_
 
 from models.user import User, TimeRecord
 
-from utils.database import async_session
-from utils.specific import get_report
 from utils.time import string_timedelta
+
+from core.database import async_session
+from core.utils import get_report
 
 
 router = Router()
@@ -329,4 +330,4 @@ async def cmd_clear(message: Message):
 
         await session.commit()
 
-        await message.answer("Изменения внесены", parse_mode=ParseMode.HTML)
+        await message.answer("Изменения применены", parse_mode=ParseMode.HTML)

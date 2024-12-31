@@ -14,10 +14,11 @@ from models.user import User
 
 from routers import commands, tracking
 
-from utils.config import Config
-from utils.database import on_startup as db_on_startup, async_session
 from utils.time import string_timedelta
-from utils.specific import get_report
+
+from conf.app import Config
+from core.database import on_startup as db_on_startup, async_session
+from core.utils import get_report
 
 logging.basicConfig(
     level=logging.INFO

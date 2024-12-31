@@ -12,10 +12,11 @@ from sqlalchemy import select
 
 from models.user import User, TimeRecord
 
-from utils.config import Config
-from utils.database import async_session
-from utils.specific import is_stop_text, get_stop_text
 from utils.time import string_timedelta
+
+from conf.app import Config
+from core.database import async_session
+from core.utils import is_stop_text, get_stop_text
 
 
 router = Router()
