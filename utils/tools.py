@@ -19,16 +19,17 @@ def postpone_task_noexcept(task: Coroutine, *, delay: float) -> asyncio.Task:
     return asyncio.create_task(_f())
 
 
+fernet_cipher = Fernet(Config.FERNET_KEY)
+
 class EncryptedString(TypeDecorator):
     impl = String
-    cipher = Fernet(Config.FERNET_KEY)
 
     def process_bind_param(self, value, _dialect):
         if value is not None:
-            value = self.cipher.encrypt(value.encode("utf-8")).decode("utf-8")
+            value = fernet_cipher.encrypt(value.encode("utf-8"))
         return value
 
     def process_result_value(self, value, _dialect):
         if value is not None:
-            value = self.cipher.decrypt(value.encode("utf-8")).decode("utf-8")
+            value = fernet_cipher.decrypt(value).decode("utf-8")
         return value
