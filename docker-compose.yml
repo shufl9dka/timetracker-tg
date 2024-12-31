@@ -42,9 +42,7 @@ services:
     depends_on:
       - db
       - redis
-    env_file:
-    - path: ./.env
-      required: true
+    env_file: .env
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
