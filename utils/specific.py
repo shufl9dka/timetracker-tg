@@ -42,7 +42,7 @@ async def get_report(
         TimeRecord.user_id == user_id,
         sa.or_(
             TimeRecord.started_ts >= start_from,
-            TimeRecord.ended_ts >= start_from,
+            TimeRecord.ended_ts > start_from,
         ),
     )
     if up_to is not None:
