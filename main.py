@@ -25,7 +25,11 @@ logging.basicConfig(
 
 
 async def sumup_task(bot: Bot):
+    logging.info("Summing-up sendings task is running")
+
     while True:
+        await asyncio.sleep(15)
+
         try:
             async with async_session() as session:
                 users = await session.execute(
@@ -59,18 +63,15 @@ async def sumup_task(bot: Bot):
                     try:
                         await bot.send_message(user.user_id, "\n".join(result), parse_mode=ParseMode.HTML)
                         user.last_sumup_ts = now
+                        await session.commit()
                     except Exception as ex:
                         logging.warning(f"Can't send a message to user {user.user_id}: {ex}")
                         if not table:
                             user.last_sumup_ts = now
 
                     await asyncio.sleep(0.3)
-
-                await session.commit()
         except Exception as ex:
             logging.warning(f"Some exception in sumup_task: {ex}")
-
-        await asyncio.sleep(15)
 
 
 async def main():
@@ -88,6 +89,7 @@ async def main():
     await db_on_startup()
 
     await bot.delete_webhook(drop_pending_updates=True)
+    asyncio.create_task(sumup_task(bot))
 
     try:
         await dp.start_polling(bot)

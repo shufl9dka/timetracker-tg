@@ -20,6 +20,8 @@ from utils.time import string_timedelta
 
 router = Router()
 
+sent_pro_tip_users = set()
+
 
 def parse_another_task(text: str) -> tuple[int | None, str]:
     a = text.split(maxsplit=1)
@@ -38,6 +40,7 @@ async def text_message(message: Message, state: FSMContext):
     now_ts = int(time.time())
     seconds, task = parse_another_task(message.html_text.strip("\u25B6 "))
     is_stop_task = is_stop_text(task)
+    user_id = message.from_user.id
 
     if len(task) > 64:
         await message.answer("Строка не должна быть длинее 64 символов")
@@ -60,7 +63,7 @@ async def text_message(message: Message, state: FSMContext):
 
         async with async_session() as session:
             session.add(TimeRecord(
-                user_id=message.from_user.id,
+                user_id=user_id,
                 label=task,
                 started_ts=started_ts,
                 ended_ts=now_ts,
@@ -97,12 +100,12 @@ async def text_message(message: Message, state: FSMContext):
 
         async with async_session() as session:
             user = await session.execute(
-                select(User).where(User.user_id == message.from_user.id)
+                select(User).where(User.user_id == user_id)
             )
             user = user.scalar_one_or_none()
 
             if user is None:
-                user = User(user_id=message.from_user.id)
+                user = User(user_id=user_id)
                 session.add(user)
 
             user.most_recent_labels = [current_task] + list(filter(lambda x: x != current_task, user.most_recent_labels))
@@ -110,7 +113,7 @@ async def text_message(message: Message, state: FSMContext):
                 user.most_recent_labels = user.most_recent_labels[:Config.MAX_RECENT_LABELS]
 
             session.add(TimeRecord(
-                user_id=message.from_user.id,
+                user_id=user_id,
                 label=current_task,
                 started_ts=started_ts,
                 ended_ts=now_ts,
@@ -136,11 +139,17 @@ async def text_message(message: Message, state: FSMContext):
             "message_id": message.message_id,
         })
 
-        answer += f"\U0001F31F Начали <b>{task}</b>. Когда решишь остановить, нажми кнопку <b>\"Стоп\"</b>"
+        need_pro_tip = not bool(answer) and user_id not in sent_pro_tip_users
+
+        answer += f"\U0001F31F Начали <b>{task}</b>. Для остановки таймера нажми кнопку <b>\"Стоп\"</b>"
+        if need_pro_tip:
+            answer += "\n\n<b>Pro tip:</b> Если хочешь переключиться на другое занятие, необязательно нажимать <b>\"Стоп\"</b> перед этим: просто введи название, на которое переключаешься."
+            sent_pro_tip_users.add(user_id)
+
         reply_markup = ReplyKeyboardMarkup(
             keyboard=[[KeyboardButton(text=get_stop_text())]],
             resize_keyboard=True,
             is_persistent=True,
         )
-    
+
     await message.answer(answer, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
