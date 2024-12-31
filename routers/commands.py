@@ -1,5 +1,4 @@
 import datetime
-import pytimeparse
 import pytz
 
 from aiogram import Router
@@ -9,9 +8,9 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from sqlalchemy import select
+from sqlalchemy import select, delete, update, and_
 
-from models.user import User
+from models.user import User, TimeRecord
 
 from utils.database import async_session
 from utils.specific import get_report
@@ -192,7 +191,7 @@ async def cmd_toggle_sumups(message: Message):
 @router.message(Command("sumup"))
 async def cmd_toggle_sumups(message: Message):
     user_id = message.from_user.id
-    bad_format_msg = "Формат ввода: <code>/sumup [HH:MM]</code>"
+    bad_format_msg = "Формат ввода: <b>/sumup [HH:MM]</b>"
 
     a = message.text.split(maxsplit=1)
     if len(a) != 2:
@@ -231,7 +230,7 @@ async def cmd_toggle_sumups(message: Message):
 @router.message(Command("tz"))
 async def cmd_timezone(message: Message):
     user_id = message.from_user.id
-    bad_format_msg = "Формат ввода: <code>/tz [timezone]</code>\n\nПодробнее про формат часовых поясов можно почитать <a href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List\">здесь</a>"
+    bad_format_msg = "Формат ввода: <b>/tz [timezone]</b>\n\nПодробнее про формат часовых поясов можно почитать <a href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List\">здесь</a>"
 
     a = message.text.split(maxsplit=1)
     if len(a) != 2:
@@ -264,19 +263,16 @@ async def cmd_timezone(message: Message):
     )
 
 
-@router.message(Command("clean"))
-async def cmd_clean(message: Message):
+@router.message(Command("clear"))
+async def cmd_clear(message: Message):
     user_id = message.from_user.id
-    bad_format_msg = "Формат ввода: <code>/clean [when]</code>\n\nВместо when"
+    bad_format_msg = \
+        "Формат ввода: <b>/clear [when]</b>\n\nВ качестве <code>when</code> можно " + \
+        "использовать значения: <code>today</code>, <code>today</code>, <code>month</code> или <code>all</code>.\n\n" + \
+        "Эта команда <b>безвозвратно</b> удаляет записи об активностях за указанный период."
 
     a = message.text.split(maxsplit=1)
     if len(a) != 2:
-        await message.answer(bad_format_msg, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
-        return
-
-    try:
-        tz = pytz.timezone(a[1])
-    except:
         await message.answer(bad_format_msg, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
         return
 
@@ -287,14 +283,50 @@ async def cmd_clean(message: Message):
         user = user.scalar_one_or_none()
 
         if user is None:
-            user = User(user_id=user_id)
-            session.add(user)
+            return
 
-        user.timezone = a[1]
+        tz = pytz.timezone(user.timezone)
+
+        tp = a[1].lower()
+        start_from_ts = None
+        if tp == "today":
+            start_from_ts = int(
+                datetime.datetime.\
+                    now(tz=tz).\
+                    replace(hour=0, minute=0, second=0, microsecond=0).\
+                    timestamp()
+            )
+            delete_statement = and_(TimeRecord.user_id == user_id, TimeRecord.started_ts >= start_from_ts)
+        elif tp == "week":
+            dt = datetime.datetime.now(tz=tz)
+            start_from_ts = int(
+                (dt - datetime.timedelta(days=dt.weekday())).\
+                    replace(hour=0, minute=0, second=0, microsecond=0).\
+                    timestamp()
+            )
+            delete_statement = and_(TimeRecord.user_id == user_id, TimeRecord.started_ts >= start_from_ts)
+        elif tp == "month":
+            start_from_ts = int(
+                datetime.datetime.\
+                    now(tz=pytz.timezone(user.timezone)).\
+                    replace(day=1, hour=0, minute=0, second=0, microsecond=0).\
+                    timestamp()
+            )
+            delete_statement = and_(TimeRecord.user_id == user_id, TimeRecord.started_ts >= start_from_ts)
+        elif tp == "all":
+            delete_statement = TimeRecord.user_id == user_id
+        else:
+            await message.answer(bad_format_msg, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+            return
+
+        await session.execute(delete(TimeRecord).where(delete_statement))
+        if start_from_ts is not None:
+            await session.execute(
+                update(TimeRecord)
+                .where(TimeRecord.ended_ts > start_from_ts)
+                .values(ended_ts=start_from_ts)
+            )
+
         await session.commit()
 
-    dt = datetime.datetime.now(tz=tz).strftime("%H:%M")
-    await message.answer(
-        f"Часовой пояс обновлён. Убедись, что ожидаемое время совпадает с временем часового пояса: <b>{dt}</b>",
-        parse_mode=ParseMode.HTML,
-    )
+        await message.answer("Изменения внесены", parse_mode=ParseMode.HTML)
