@@ -7,7 +7,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-from conf.app import Config
 from utils.tools import EncryptedString
 
 
@@ -30,7 +29,7 @@ class TimeRecord(Base):
 
     record_id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True)
     user_id: Mapped[int] = mapped_column(sa.BigInteger, sa.ForeignKey("users.user_id"), nullable=False, index=True)
-    label: Mapped[str] = mapped_column(EncryptedString(Config.FERNET_KEY), nullable=False)
+    label: Mapped[str] = mapped_column(EncryptedString, nullable=False)
 
     started_ts: Mapped[int] = mapped_column(sa.BigInteger, index=True)
     ended_ts: Mapped[int] = mapped_column(sa.BigInteger, index=True)
