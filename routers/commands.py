@@ -69,7 +69,7 @@ async def cmd_today(message: Message, state: FSMContext):
                 timestamp()
         )
 
-        sum, table = await get_report(user_id, additional=data, start_from=today_start, session=session)
+        sum, table = await get_report(session, user_id, additional=data, start_from=today_start)
 
     if not table:
         await message.answer("\u26A0 Записей за день не обнаружено")
@@ -109,7 +109,7 @@ async def cmd_week(message: Message, state: FSMContext):
                 timestamp()
         )
 
-        sum, table = await get_report(user_id, additional=data, start_from=week_start, session=session)
+        sum, table = await get_report(session, user_id, additional=data, start_from=week_start)
 
     if not table:
         await message.answer("\u26A0 Записей за неделю не обнаружено")
@@ -149,7 +149,7 @@ async def cmd_month(message: Message, state: FSMContext):
                 timestamp()
         )
 
-        sum, table = await get_report(user_id, additional=data, start_from=month_start, session=session)
+        sum, table = await get_report(session, user_id, additional=data, start_from=month_start)
 
     if not table:
         await message.answer("\u26A0 Записей за месяц не обнаружено")

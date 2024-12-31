@@ -3,7 +3,7 @@ import time
 
 from collections import defaultdict
 
-from sqlalchemy import select
+import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import TimeRecord
@@ -24,12 +24,12 @@ def is_stop_text(text: str):
 
 
 async def get_report(
+    session: AsyncSession,
     user_id: int,
     *,
     start_from: int,
     up_to: int = None,
     additional: dict = None,
-    session: AsyncSession = None,
 ) -> tuple[int, list[dict[str, int]]]:
     table = defaultdict(int)
 
@@ -38,12 +38,18 @@ async def get_report(
 
     logging.info(f"Get report: start_from={start_from}")
 
-    statement = TimeRecord.user_id == user_id and (TimeRecord.started_ts >= start_from or TimeRecord.ended_ts >= start_from)
+    statement = sa.and_(
+        TimeRecord.user_id == user_id,
+        sa.or_(
+            TimeRecord.started_ts >= start_from,
+            TimeRecord.ended_ts >= start_from,
+        ),
+    )
     if up_to is not None:
-        statement = statement and (TimeRecord.started_ts < up_to)
+        statement = sa.and_(statement, TimeRecord.started_ts < up_to)
 
     records = await session.execute(
-        select(TimeRecord).where(statement)
+        sa.select(TimeRecord).where(statement)
     )
 
     for record in records.scalars():

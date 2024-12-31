@@ -48,7 +48,7 @@ async def sumup_task(bot: Bot):
                     if user.last_sumup_ts > to_send or now < to_send:
                         continue
 
-                    sum, table = await get_report(user.user_id, start_from=to_send - h * 3600 - m * 60, session=session)
+                    sum, table = await get_report(session, user.user_id, start_from=to_send - h * 3600 - m * 60)
 
                     if table:
                         result = [f"\U0001F4CA Суммарное время за день: <b>{string_timedelta(sum)}</b>\n"]
