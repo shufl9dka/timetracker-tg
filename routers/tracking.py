@@ -71,7 +71,7 @@ async def text_message(message: Message, state: FSMContext):
             await session.commit()
 
         await message.answer(
-            f"Добавлено <b>{string_timedelta(seconds)}</b> к задаче <b>{task}</b>",
+            f"Добавлено <b>{string_timedelta(seconds)}</b> к занятию <b>{task}</b>",
             parse_mode=ParseMode.HTML,
         )
         return
@@ -143,7 +143,7 @@ async def text_message(message: Message, state: FSMContext):
 
         answer += f"\U0001F31F Начали <b>{task}</b>. Для остановки таймера нажми кнопку <b>\"Стоп\"</b>"
         if need_pro_tip:
-            answer += "\n\n<b>Pro tip:</b> Если хочешь переключиться на другое занятие, необязательно нажимать <b>\"Стоп\"</b> перед этим: просто введи название, на которое переключаешься."
+            answer += "\n\n<b>Pro tip:</b> Если хочешь переключиться на другое занятие, необязательно нажимать <b>\"Стоп\"</b> перед этим: просто введи занятие, на которое переключаешься."
             sent_pro_tip_users.add(user_id)
 
         reply_markup = ReplyKeyboardMarkup(

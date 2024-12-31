@@ -192,20 +192,21 @@ async def cmd_toggle_sumups(message: Message):
 @router.message(Command("sumup"))
 async def cmd_toggle_sumups(message: Message):
     user_id = message.from_user.id
+    bad_format_msg = "Формат ввода: <code>/sumup [HH:MM]</code>"
 
     a = message.text.split(maxsplit=1)
     if len(a) != 2:
-        await message.answer("Формат ввода: /sumup [HH:MM]")
+        await message.answer(bad_format_msg, parse_mode=ParseMode.HTML)
         return
 
     tx = a[1]
     a = a[1].split(":")[:2]
     if len(a) < 2:
-        await message.answer("Формат ввода: /sumup [HH:MM]")
+        await message.answer(bad_format_msg, parse_mode=ParseMode.HTML)
         return
     
     if not a[0].isdigit() or int(a[0]) < 0 or int(a[0]) > 23 or not a[1].isdigit() or int(a[1]) < 0 or int(a[1]) > 59:
-        await message.answer("Формат ввода: /sumup [HH:MM]")
+        await message.answer(bad_format_msg, parse_mode=ParseMode.HTML)
         return
 
     async with async_session() as session:
@@ -230,7 +231,43 @@ async def cmd_toggle_sumups(message: Message):
 @router.message(Command("tz"))
 async def cmd_timezone(message: Message):
     user_id = message.from_user.id
-    bad_format_msg = "Формат ввода: /tz [timezone]\n\nПодробнее про формат часовых поясов можно почитать <a href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List\">здесь</a>"
+    bad_format_msg = "Формат ввода: <code>/tz [timezone]</code>\n\nПодробнее про формат часовых поясов можно почитать <a href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List\">здесь</a>"
+
+    a = message.text.split(maxsplit=1)
+    if len(a) != 2:
+        await message.answer(bad_format_msg, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+        return
+
+    try:
+        tz = pytz.timezone(a[1])
+    except:
+        await message.answer(bad_format_msg, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+        return
+
+    async with async_session() as session:
+        user = await session.execute(
+            select(User).where(User.user_id == user_id)
+        )
+        user = user.scalar_one_or_none()
+
+        if user is None:
+            user = User(user_id=user_id)
+            session.add(user)
+
+        user.timezone = a[1]
+        await session.commit()
+
+    dt = datetime.datetime.now(tz=tz).strftime("%H:%M")
+    await message.answer(
+        f"Часовой пояс обновлён. Убедись, что ожидаемое время совпадает с временем часового пояса: <b>{dt}</b>",
+        parse_mode=ParseMode.HTML,
+    )
+
+
+@router.message(Command("clean"))
+async def cmd_clean(message: Message):
+    user_id = message.from_user.id
+    bad_format_msg = "Формат ввода: <code>/clean [when]</code>\n\nВместо when"
 
     a = message.text.split(maxsplit=1)
     if len(a) != 2:
