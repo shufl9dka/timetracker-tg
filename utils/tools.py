@@ -5,6 +5,8 @@ from sqlalchemy.types import TypeDecorator, String
 from rfernet import Fernet
 from typing import Coroutine
 
+from conf.app import Config
+
 
 def postpone_task_noexcept(task: Coroutine, *, delay: float) -> asyncio.Task:
     async def _f():
@@ -19,7 +21,7 @@ def postpone_task_noexcept(task: Coroutine, *, delay: float) -> asyncio.Task:
 
 class EncryptedString(TypeDecorator):
     impl = String
-    cipher = Fernet(key)
+    cipher = Fernet(Config.FERNET_KEY)
 
     def process_bind_param(self, value, _dialect):
         if value is not None:
