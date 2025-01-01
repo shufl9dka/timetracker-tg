@@ -5,15 +5,11 @@ services:
       POSTGRES_DB: "botapp_db"
       POSTGRES_USER: "pguser"
       POSTGRES_PASSWORD: "$POSTGRES_PASSWORD"
-    ports:
-      - "34175:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
   redis:
     image: redis:7.4.1-alpine
-    ports:
-      - '6379:6379'
     environment:
       REDIS_PASSWORD: "$REDIS_PASSWORD"
       REDIS_USER: "$REDIS_USER"
@@ -38,13 +34,11 @@ services:
     environment:
       BOT_TOKEN: "$BOT_TOKEN"
       SQL_ENGINE_URI: "postgresql+asyncpg://pguser:$POSTGRES_PASSWORD@db/botapp_db"
-      REDIS_URI: "redis://$REDIS_USER:$REDIS_PASSWORD@redis/0"
+      REDIS_URI: "redis://$REDIS_USER:$REDIS_USER_PASSWORD@redis/0"
     depends_on:
       - db
       - redis
     env_file: .env
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
 volumes:
   postgres_data:
