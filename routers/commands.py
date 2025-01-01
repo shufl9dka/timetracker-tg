@@ -40,7 +40,7 @@ async def cmd_start(message: Message):
         start_users_cache.add(user_id)
 
     await message.answer(
-        "\U0001F44B Привет! Введи короткое название занятия или действие, которому ты собираешься уделить время, и таймер начнёт отсчёт.\n\n"
+        "\U0001F44B Привет! Введи короткое название занятия или действия, которому ты собираешься уделить время, и таймер начнёт отсчёт.\n\n"
         "Чтобы добавить уже прошедшее событие, просто добавь его длительность перед названием в формате <b>2ч30м</b> или <b>45м</b>.",
         parse_mode=ParseMode.HTML,
     )
@@ -269,7 +269,7 @@ async def cmd_clear(message: Message):
     user_id = message.from_user.id
     bad_format_msg = \
         "Формат ввода: <b>/clear [when]</b>\n\nВ качестве <code>when</code> можно " + \
-        "использовать значения: <code>today</code>, <code>today</code>, <code>month</code> или <code>all</code>.\n\n" + \
+        "использовать значения: <code>today</code>, <code>week</code>, <code>month</code> или <code>all</code>.\n\n" + \
         "Эта команда <b>безвозвратно</b> удаляет записи об активностях за указанный период."
 
     a = message.text.split(maxsplit=1)
