@@ -183,10 +183,10 @@ async def cmd_toggle_sumups(message: Message):
         user.send_sumups = not user.send_sumups
         await session.commit()
 
-    await message.answer(
-        f"Уведомления с подведением итогов <b>{'включены' if user.send_sumups else 'выключены'}</b>",
-        parse_mode=ParseMode.HTML,
-    )
+        await message.answer(
+            f"Уведомления с подведением итогов <b>{'включены' if user.send_sumups else 'выключены'}</b>",
+            parse_mode=ParseMode.HTML,
+        )
 
 
 @router.message(Command("sumup"))

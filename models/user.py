@@ -21,7 +21,7 @@ class User(Base):
     send_sumups: Mapped[bool] = mapped_column(nullable=False, default=True)
 
     records: Mapped[List["TimeRecord"]] = relationship()
-    most_recent_labels: Mapped[List[str]] = mapped_column(ARRAY(sa.String), nullable=False, default=[])
+    most_recent_labels: Mapped[List[str]] = mapped_column(ARRAY(EncryptedString), nullable=False, default=[])
 
 
 class TimeRecord(Base):

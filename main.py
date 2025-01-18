@@ -69,6 +69,7 @@ async def sumup_task(bot: Bot):
                         logging.warning(f"Can't send a message to user {user.user_id}: {ex}")
                         if not table:
                             user.last_sumup_ts = now
+                        await session.commit()
 
                     await asyncio.sleep(0.3)
         except Exception as ex:

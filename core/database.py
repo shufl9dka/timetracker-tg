@@ -7,7 +7,7 @@ from conf.app import Config
 
 
 engine: AsyncEngine = create_async_engine(Config.SQL_ENGINE_URI)
-async_session = async_sessionmaker(engine)
+async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
 async def on_startup():
